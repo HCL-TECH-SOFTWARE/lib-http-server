@@ -1,51 +1,27 @@
 let tc = TCF.define(TCF.CPP_TRANSFORM);
+let topTC = TCF.getRootTransformationConfiguration();
+let pocoLoc = topTC.pocoLoc || 'D:\\github\\poco';
+
 tc.sources = [
     'platform:/resource/LibHttpServer/LibHttpServer.emx#_rx2SkNXDEei3BJT-OqdJZA'
 ];
-tc.topCapsule = 'platform:/resource/TrafficLightsDemo/TrafficLightComponent.emx#_4gz4gNXDEei3BJT-OqdJZA';
 tc.createTargetProject = true;
 tc.targetProject = '/LibHttpServer_target';
-tc.compilationMakeCommand = 'mingw32-make';
-tc.compilationMakeType = MakeType.GNU_make;
-tc.targetConfiguration = 'WinT.x64-MinGw-8.1.0';
-tc.compileArguments = '-g -fexceptions';
-tc.linkArguments = '-lwsock32';
-tc.supportForFileArtifacts = true;
-tc.threads = [
-{
-    name: 'MainThread',
-    implClass: 'RTPeerController',
-    stackSize: '20000',
-    priority: 'DEFAULT_MAIN_PRIORITY',
-},
-{
-    name: 'TimerThread',
-    implClass: 'RTTimerController',
-    stackSize: '20000',
-    priority: 'DEFAULT_TIMER_PRIORITY',
-},
-{
-    name: 'ServerThread',
-    implClass: 'RTPeerController',
-    stackSize: '20000',
-    priority: 'DEFAULT_MAIN_PRIORITY',
-    logical: [
-        'ServerThread'
-    ]
-},
-{
-    name: 'PushButtonThread',
-    implClass: 'RTPeerController',
-    stackSize: '20000',
-    priority: 'DEFAULT_MAIN_PRIORITY',
-    logical: [
-        'PushButtonThread'
-    ]
-}
+tc.type = CppTransformType.Library;
+tc.compilationMakeType = topTC.compilationMakeType || MakeType.MS_nmake;
+tc.compileArguments = topTC.compileArguments || '$(DEBUG_TAG) /MDd';
+tc.inclusionPaths = [
+    pocoLoc + '\\Net\\include',
+    pocoLoc + '\\Foundation\\include'
 ];
+
+tc.targetConfiguration = topTC.targetConfiguration || 'WinT.x64-VisualC++-15.0';
+tc.targetServicesLibrary = topTC.targetServicesLibrary || 'D:\\git\\rsarte-target-rts\\rsa_rt\\C++\\TargetRTS';
+
+tc.unitName = 'UnitName_HttpLib';
 tc.copyrightText = `
 /*******************************************************************************
- * (c) Copyright HCL Technologies Ltd. 2018.  MIT Licensed!
+ * (c) Copyright HCL Technologies Ltd. 2019.  MIT Licensed!
  *******************************************************************************/
 `;
-tc.type = CppTransformType.Library;
+tc.libraryName = 'httpServerLib$(LIB_EXT)';

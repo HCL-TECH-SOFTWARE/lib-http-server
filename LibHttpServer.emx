@@ -142,7 +142,6 @@
       <eAnnotations xmi:id="_rx2S9tXDEei3BJT-OqdJZA" source="RSA_ElementImport"/>
       <importedPackage xmi:type="uml:Model" href="platform:/plugin/com.ibm.xtools.umldt.rt.cpp.core/libraries/RTComponents.emx#__QdLdUB2PEd2Vrcc_Gxok_A37F129B1035A?RTComponents?"/>
     </packageImport>
-    <packagedElement xmi:type="uml:Artifact" xmi:id="_eL7p8NXYEei7WZvlxd1NlA" name="Socket"/>
     <packagedElement xmi:type="uml:Class" xmi:id="_K_gYkN6wEeife8wA8rm4kw" name="HttpServer_Out">
       <eAnnotations xmi:id="_LAFAUN6wEeife8wA8rm4kw" source="uml2.diagrams" references="_LAFAUd6wEeife8wA8rm4kw">
         <contents xmi:type="umlnotation:UMLDiagram" xmi:id="_LAFAUd6wEeife8wA8rm4kw" type="Structure" element="_K_gYkN6wEeife8wA8rm4kw" measurementUnit="Himetric">
@@ -238,32 +237,21 @@ port = thePort;</body>
       <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_bteDUN6zEeife8wA8rm4kw" name="httpGet" specification="_0UyMwN6yEeife8wA8rm4kw">
         <language>C++</language>
         <body>try {&#xD;
-	SocketClient s(host, port);&#xD;
-&#xD;
-    s.SendLine(&quot;GET /&quot; + resource + &quot; HTTP/1.0&quot;);&#xD;
-    s.SendLine(&quot;Host: &quot; + host);&#xD;
-    s.SendLine(&quot;&quot;);&#xD;
-&#xD;
-    string response;&#xD;
-    while (true) {&#xD;
-      string line = s.ReceiveLine();&#xD;
-      response += line;&#xD;
-      if (line.empty()) break;&#xD;
-    }&#xD;
-&#xD;
-    return response;&#xD;
-  } &#xD;
-  catch (const char* s) {&#xD;
-	  cerr &lt;&lt; &quot;Failed to GET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; s &lt;&lt; endl &lt;&lt; flush;&#xD;
-  } &#xD;
-  catch (std::string s) {&#xD;
-	  cerr &lt;&lt; &quot;Failed to GET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; s &lt;&lt; endl &lt;&lt; flush;&#xD;
-  } &#xD;
-  catch (...) {&#xD;
-    cerr &lt;&lt; &quot;unhandled exception\n&quot;;&#xD;
-  }&#xD;
-&#xD;
-  return &quot;ERROR&quot;;</body>
+	HTTPClientSession session(host, port);&#xD;
+	HTTPRequest request(HTTPRequest::HTTP_GET, &quot;/&quot; + resource, HTTPMessage::HTTP_1_1);&#xD;
+	HTTPResponse response;&#xD;
+	session.sendRequest(request);&#xD;
+	std::istream&amp; rs = session.receiveResponse(response);&#xD;
+	if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_OK)&#xD;
+		return &quot;ERROR&quot;;&#xD;
+		&#xD;
+	std::string s(std::istreambuf_iterator&lt;char>(rs), {});	&#xD;
+	return s;&#xD;
+}&#xD;
+catch (Poco::Exception&amp; exc) {&#xD;
+	std::cerr &lt;&lt; exc.displayText() &lt;&lt; std::endl;&#xD;
+	return &quot;ERROR&quot;;&#xD;
+}</body>
       </ownedBehavior>
       <ownedOperation xmi:id="_pzwv8N6wEeife8wA8rm4kw" name="configureServer" method="_zNHE8N6wEeife8wA8rm4kw">
         <ownedParameter xmi:id="_Z6Wx0N6xEeife8wA8rm4kw" name="theHost"/>
@@ -383,31 +371,18 @@ configureServer(&quot;localhost&quot;, 12345, &quot;getMessage&quot;);</body>
       <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_UhekcN64Eeife8wA8rm4kw" name="waitForIncomingMessage" specification="_Uhd9YN64Eeife8wA8rm4kw">
         <language>C++</language>
         <body>try {&#xD;
-	SocketClient s(host, port);&#xD;
-	//cout &lt;&lt; &quot;Sending &quot; &lt;&lt; resource &lt;&lt; endl &lt;&lt; flush;&#xD;
-    s.SendLine(&quot;GET /&quot; + resource + &quot; HTTP/1.0&quot;);&#xD;
-    s.SendLine(&quot;Host: &quot; + host);&#xD;
-    s.SendLine(&quot;&quot;);&#xD;
-&#xD;
-    // Wait until we get a message&#xD;
-    string response;&#xD;
-    while (true) {&#xD;
-      string line = s.ReceiveLine();&#xD;
-      //cout &lt;&lt; &quot;GOT LINE &quot; &lt;&lt; line &lt;&lt; endl &lt;&lt; flush;&#xD;
-      if (line.empty()) break;&#xD;
-      else&#xD;
-    	  response = line;&#xD;
-    }&#xD;
-    onMessageReceived(response);&#xD;
-} &#xD;
-catch (const char* s) {&#xD;
-	cerr &lt;&lt; &quot;Failed to GET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; s &lt;&lt; endl &lt;&lt; flush;&#xD;
-} &#xD;
-catch (std::string s) {&#xD;
-	cerr &lt;&lt; &quot;Failed to GET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; s &lt;&lt; endl &lt;&lt; flush;&#xD;
-} &#xD;
-catch (...) {&#xD;
-    cerr &lt;&lt; &quot;unhandled exception\n&quot;;&#xD;
+	HTTPClientSession session(host, port);&#xD;
+	HTTPRequest request(HTTPRequest::HTTP_GET, &quot;/&quot; + resource, HTTPMessage::HTTP_1_1);&#xD;
+	HTTPResponse response;&#xD;
+	session.sendRequest(request);&#xD;
+	std::istream&amp; rs = session.receiveResponse(response);&#xD;
+	if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {&#xD;
+		std::string s(std::istreambuf_iterator&lt;char>(rs), {});&#xD;
+		onMessageReceived(s);&#xD;
+	}&#xD;
+}&#xD;
+catch (Poco::Exception&amp; exc) {&#xD;
+	std::cerr &lt;&lt; &quot;Failed to FET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; exc.displayText() &lt;&lt; std::endl &lt;&lt; std::flush;&#xD;
 }&#xD;
 &#xD;
 timer.informIn(RTTimespec(0,0)); // Schedule the waiting for another message to arrive&#xD;
@@ -483,15 +458,12 @@ resource = theResource;</body>
     </profileApplication>
   </uml:Package>
   <Default:DefaultLanguage xmi:id="_rx252NXDEei3BJT-OqdJZA" base_Package="_rx2SkNXDEei3BJT-OqdJZA" defaultLanguage="C++"/>
-  <CppPropertySets:GeneralArtifactProperties xmi:id="_tQo_QNXYEei7WZvlxd1NlA" base_Artifact="_eL7p8NXYEei7WZvlxd1NlA">
-    <Header xmi:id="_tQo_QdXYEei7WZvlxd1NlA" body="/* &#xD;&#xA;   Socket.h&#xD;&#xA;   Copyright (C) 2002-2017 René Nyffenegger&#xD;&#xA;   This source code is provided 'as-is', without any express or implied&#xD;&#xA;   warranty. In no event will the author be held liable for any damages&#xD;&#xA;   arising from the use of this software.&#xD;&#xA;   Permission is granted to anyone to use this software for any purpose,&#xD;&#xA;   including commercial applications, and to alter it and redistribute it&#xD;&#xA;   freely, subject to the following restrictions:&#xD;&#xA;   1. The origin of this source code must not be misrepresented; you must not&#xD;&#xA;      claim that you wrote the original source code. If you use this source code&#xD;&#xA;      in a product, an acknowledgment in the product documentation would be&#xD;&#xA;      appreciated but is not required.&#xD;&#xA;   2. Altered source versions must be plainly marked as such, and must not be&#xD;&#xA;      misrepresented as being the original source code.&#xD;&#xA;   3. This notice may not be removed or altered from any source distribution.&#xD;&#xA;   René Nyffenegger rene.nyffenegger@adp-gmbh.ch&#xD;&#xA;*/&#xD;&#xA;&#xD;&#xA;#ifndef SOCKET_H&#xD;&#xA;#define SOCKET_H&#xD;&#xA;&#xD;&#xA;#include &lt;WinSock2.h>&#xD;&#xA;&#xD;&#xA;#include &lt;string>&#xD;&#xA;&#xD;&#xA;enum TypeSocket {BlockingSocket, NonBlockingSocket};&#xD;&#xA;&#xD;&#xA;class Socket {&#xD;&#xA;public:&#xD;&#xA;&#xD;&#xA;  virtual ~Socket();&#xD;&#xA;  Socket(const Socket&amp;);&#xD;&#xA;  Socket&amp; operator=(Socket&amp;);&#xD;&#xA;&#xD;&#xA;  std::string ReceiveLine();&#xD;&#xA;  std::string ReceiveBytes();&#xD;&#xA;&#xD;&#xA;  void   Close();&#xD;&#xA;&#xD;&#xA;  // The parameter of SendLine is not a const reference&#xD;&#xA;  // because SendLine modifes the std::string passed.&#xD;&#xA;  void   SendLine (std::string);&#xD;&#xA;&#xD;&#xA;  // The parameter of SendBytes is a const reference&#xD;&#xA;  // because SendBytes does not modify the std::string passed &#xD;&#xA;  // (in contrast to SendLine).&#xD;&#xA;  void   SendBytes(const std::string&amp;);&#xD;&#xA;&#xD;&#xA;protected:&#xD;&#xA;  friend class SocketServer;&#xD;&#xA;  friend class SocketSelect;&#xD;&#xA;&#xD;&#xA;  Socket(SOCKET s);&#xD;&#xA;  Socket();&#xD;&#xA;&#xD;&#xA;  SOCKET s_;&#xD;&#xA;&#xD;&#xA;  int* refCounter_;&#xD;&#xA;&#xD;&#xA;private:&#xD;&#xA;  static void Start();&#xD;&#xA;  static void End();&#xD;&#xA;  static int  nofSockets_;&#xD;&#xA;};&#xD;&#xA;&#xD;&#xA;class SocketClient : public Socket {&#xD;&#xA;public:&#xD;&#xA;  SocketClient(const std::string&amp; host, int port);&#xD;&#xA;};&#xD;&#xA;&#xD;&#xA;class SocketServer : public Socket {&#xD;&#xA;public:&#xD;&#xA;  SocketServer(int port, int connections, TypeSocket type=BlockingSocket);&#xD;&#xA;&#xD;&#xA;  Socket* Accept();&#xD;&#xA;};&#xD;&#xA;&#xD;&#xA;class SocketSelect {&#xD;&#xA;// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/wsapiref_2tiq.asp&#xD;&#xA;  public:&#xD;&#xA;    SocketSelect(Socket const * const s1, Socket const * const s2=NULL, TypeSocket type=BlockingSocket);&#xD;&#xA;&#xD;&#xA;    bool Readable(Socket const * const s);&#xD;&#xA;&#xD;&#xA;  private:&#xD;&#xA;    fd_set fds_;&#xD;&#xA;}; &#xD;&#xA;&#xD;&#xA;&#xD;&#xA;#endif&#xD;&#xA;"/>
-    <Implementation xmi:id="_tQo_QtXYEei7WZvlxd1NlA" body="/* &#xD;&#xA;   Socket.cpp&#xD;&#xA;   Copyright (C) 2002-2004 René Nyffenegger&#xD;&#xA;   This source code is provided 'as-is', without any express or implied&#xD;&#xA;   warranty. In no event will the author be held liable for any damages&#xD;&#xA;   arising from the use of this software.&#xD;&#xA;   Permission is granted to anyone to use this software for any purpose,&#xD;&#xA;   including commercial applications, and to alter it and redistribute it&#xD;&#xA;   freely, subject to the following restrictions:&#xD;&#xA;   1. The origin of this source code must not be misrepresented; you must not&#xD;&#xA;      claim that you wrote the original source code. If you use this source code&#xD;&#xA;      in a product, an acknowledgment in the product documentation would be&#xD;&#xA;      appreciated but is not required.&#xD;&#xA;   2. Altered source versions must be plainly marked as such, and must not be&#xD;&#xA;      misrepresented as being the original source code.&#xD;&#xA;   3. This notice may not be removed or altered from any source distribution.&#xD;&#xA;   René Nyffenegger rene.nyffenegger@adp-gmbh.ch&#xD;&#xA;*/&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;#include &quot;Socket.h&quot;&#xD;&#xA;#include &lt;iostream>&#xD;&#xA;&#xD;&#xA;using namespace std;&#xD;&#xA;&#xD;&#xA;int Socket::nofSockets_= 0;&#xD;&#xA;&#xD;&#xA;void Socket::Start() {&#xD;&#xA;  if (!nofSockets_) {&#xD;&#xA;    WSADATA info;&#xD;&#xA;    if (WSAStartup(MAKEWORD(2,0), &amp;info)) {&#xD;&#xA;      throw &quot;Could not start WSA&quot;;&#xD;&#xA;    }&#xD;&#xA;  }&#xD;&#xA;  ++nofSockets_;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;void Socket::End() {&#xD;&#xA;  WSACleanup();&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;Socket::Socket() : s_(0) {&#xD;&#xA;  Start();&#xD;&#xA;  // UDP: use SOCK_DGRAM instead of SOCK_STREAM&#xD;&#xA;  s_ = socket(AF_INET,SOCK_STREAM,0);&#xD;&#xA;&#xD;&#xA;  if (s_ == INVALID_SOCKET) {&#xD;&#xA;    throw &quot;INVALID_SOCKET&quot;;&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  refCounter_ = new int(1);&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;Socket::Socket(SOCKET s) : s_(s) {&#xD;&#xA;  Start();&#xD;&#xA;  refCounter_ = new int(1);&#xD;&#xA;};&#xD;&#xA;&#xD;&#xA;Socket::~Socket() {&#xD;&#xA;  if (! --(*refCounter_)) {&#xD;&#xA;    Close();&#xD;&#xA;    delete refCounter_;&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  --nofSockets_;&#xD;&#xA;  if (!nofSockets_) End();&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;Socket::Socket(const Socket&amp; o) {&#xD;&#xA;  refCounter_=o.refCounter_;&#xD;&#xA;  (*refCounter_)++;&#xD;&#xA;  s_         =o.s_;&#xD;&#xA;&#xD;&#xA;  nofSockets_++;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;Socket&amp; Socket::operator=(Socket&amp; o) {&#xD;&#xA;  (*o.refCounter_)++;&#xD;&#xA;&#xD;&#xA;  refCounter_=o.refCounter_;&#xD;&#xA;  s_         =o.s_;&#xD;&#xA;&#xD;&#xA;  nofSockets_++;&#xD;&#xA;&#xD;&#xA;  return *this;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;void Socket::Close() {&#xD;&#xA;  closesocket(s_);&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;std::string Socket::ReceiveBytes() {&#xD;&#xA;  std::string ret;&#xD;&#xA;  char buf[1024];&#xD;&#xA; &#xD;&#xA;  while (1) {&#xD;&#xA;    u_long arg = 0;&#xD;&#xA;    if (ioctlsocket(s_, FIONREAD, &amp;arg) != 0)&#xD;&#xA;      break;&#xD;&#xA;&#xD;&#xA;    if (arg == 0)&#xD;&#xA;      break;&#xD;&#xA;&#xD;&#xA;    if (arg > 1024) arg = 1024;&#xD;&#xA;&#xD;&#xA;    int rv = recv (s_, buf, arg, 0);&#xD;&#xA;    if (rv &lt;= 0) break;&#xD;&#xA;&#xD;&#xA;    std::string t;&#xD;&#xA;&#xD;&#xA;    t.assign (buf, rv);&#xD;&#xA;    ret += t;&#xD;&#xA;  }&#xD;&#xA; &#xD;&#xA;  return ret;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;std::string Socket::ReceiveLine() {&#xD;&#xA;  std::string ret;&#xD;&#xA;  while (1) {&#xD;&#xA;    char r;&#xD;&#xA;&#xD;&#xA;    switch(recv(s_, &amp;r, 1, 0)) {&#xD;&#xA;      case 0: // not connected anymore;&#xD;&#xA;              // ... but last line sent&#xD;&#xA;              // might not end in \n,&#xD;&#xA;              // so return ret anyway.&#xD;&#xA;        return ret;&#xD;&#xA;      case -1:&#xD;&#xA;        return &quot;&quot;;&#xD;&#xA;//      if (errno == EAGAIN) {&#xD;&#xA;//        return ret;&#xD;&#xA;//      } else {&#xD;&#xA;//      // not connected anymore&#xD;&#xA;//      return &quot;&quot;;&#xD;&#xA;//      }&#xD;&#xA;    }&#xD;&#xA;&#xD;&#xA;    ret += r;&#xD;&#xA;    if (r == '\n')  return ret;&#xD;&#xA;  }&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;void Socket::SendLine(std::string s) {&#xD;&#xA;  s += '\n';&#xD;&#xA;  send(s_,s.c_str(),s.length(),0);&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;void Socket::SendBytes(const std::string&amp; s) {&#xD;&#xA;  send(s_,s.c_str(),s.length(),0);&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;SocketServer::SocketServer(int port, int connections, TypeSocket type) {&#xD;&#xA;  sockaddr_in sa;&#xD;&#xA;&#xD;&#xA;  memset(&amp;sa, 0, sizeof(sa));&#xD;&#xA;&#xD;&#xA;  sa.sin_family = PF_INET;             &#xD;&#xA;  sa.sin_port = htons(port);          &#xD;&#xA;  s_ = socket(AF_INET, SOCK_STREAM, 0);&#xD;&#xA;  if (s_ == INVALID_SOCKET) {&#xD;&#xA;    throw &quot;INVALID_SOCKET&quot;;&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  if(type==NonBlockingSocket) {&#xD;&#xA;    u_long arg = 1;&#xD;&#xA;    ioctlsocket(s_, FIONBIO, &amp;arg);&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  /* bind the socket to the internet address */&#xD;&#xA;  if (bind(s_, (sockaddr *)&amp;sa, sizeof(sockaddr_in)) == SOCKET_ERROR) {&#xD;&#xA;    closesocket(s_);&#xD;&#xA;    throw &quot;INVALID_SOCKET&quot;;&#xD;&#xA;  }&#xD;&#xA;  &#xD;&#xA;  listen(s_, connections);                               &#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;Socket* SocketServer::Accept() {&#xD;&#xA;  SOCKET new_sock = accept(s_, 0, 0);&#xD;&#xA;  if (new_sock == INVALID_SOCKET) {&#xD;&#xA;    int rc = WSAGetLastError();&#xD;&#xA;    if(rc==WSAEWOULDBLOCK) {&#xD;&#xA;      return 0; // non-blocking call, no request pending&#xD;&#xA;    }&#xD;&#xA;    else {&#xD;&#xA;      throw &quot;Invalid Socket&quot;;&#xD;&#xA;    }&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  Socket* r = new Socket(new_sock);&#xD;&#xA;  return r;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;SocketClient::SocketClient(const std::string&amp; host, int port) : Socket() {&#xD;&#xA;  std::string error;&#xD;&#xA;&#xD;&#xA;  hostent *he;&#xD;&#xA;  if ((he = gethostbyname(host.c_str())) == 0) {&#xD;&#xA;    error = strerror(errno);&#xD;&#xA;    throw error;&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  sockaddr_in addr;&#xD;&#xA;  addr.sin_family = AF_INET;&#xD;&#xA;  addr.sin_port = htons(port);&#xD;&#xA;  addr.sin_addr = *((in_addr *)he->h_addr);&#xD;&#xA;  memset(&amp;(addr.sin_zero), 0, 8); &#xD;&#xA;&#xD;&#xA;  if (::connect(s_, (sockaddr *) &amp;addr, sizeof(sockaddr))) {&#xD;&#xA;    error = strerror(WSAGetLastError());&#xD;&#xA;    throw error;&#xD;&#xA;  }&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;SocketSelect::SocketSelect(Socket const * const s1, Socket const * const s2, TypeSocket type) {&#xD;&#xA;  FD_ZERO(&amp;fds_);&#xD;&#xA;  FD_SET(const_cast&lt;Socket*>(s1)->s_,&amp;fds_);&#xD;&#xA;  if(s2) {&#xD;&#xA;    FD_SET(const_cast&lt;Socket*>(s2)->s_,&amp;fds_);&#xD;&#xA;  }     &#xD;&#xA;&#xD;&#xA;  TIMEVAL tval;&#xD;&#xA;  tval.tv_sec  = 0;&#xD;&#xA;  tval.tv_usec = 1;&#xD;&#xA;&#xD;&#xA;  TIMEVAL *ptval;&#xD;&#xA;  if(type==NonBlockingSocket) {&#xD;&#xA;    ptval = &amp;tval;&#xD;&#xA;  }&#xD;&#xA;  else { &#xD;&#xA;    ptval = 0;&#xD;&#xA;  }&#xD;&#xA;&#xD;&#xA;  if (select (0, &amp;fds_, (fd_set*) 0, (fd_set*) 0, ptval) == SOCKET_ERROR) &#xD;&#xA;     throw &quot;Error in select&quot;;&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;bool SocketSelect::Readable(Socket const* const s) {&#xD;&#xA;  if (FD_ISSET(s->s_,&amp;fds_)) return true;&#xD;&#xA;     return false;&#xD;&#xA;}&#xD;&#xA;"/>
-  </CppPropertySets:GeneralArtifactProperties>
   <UMLRealTime:Capsule xmi:id="_K_1vwN6wEeife8wA8rm4kw" base_Class="_K_gYkN6wEeife8wA8rm4kw"/>
   <CppPropertySets:GeneralOperationProperties xmi:id="_202nsN6wEeife8wA8rm4kw" base_Operation="_pzwv8N6wEeife8wA8rm4kw"/>
   <CppPropertySets:GeneralAttributeProperties xmi:id="_A1DhUN6xEeife8wA8rm4kw" base_Property="_6d7AIN6wEeife8wA8rm4kw" nativeType="std::string"/>
   <CppPropertySets:GeneralCapsuleProperties xmi:id="_KPjF0N6xEeife8wA8rm4kw" base_Class="_K_gYkN6wEeife8wA8rm4kw">
-    <headerPreface xmi:id="_KPjs4N6xEeife8wA8rm4kw" body="#include &lt;iostream>&#xD;&#xA;using namespace std;&#xD;&#xA;#include &quot;Socket.h&quot;"/>
+    <headerPreface xmi:id="_KPjs4N6xEeife8wA8rm4kw" body="#include &lt;iostream>&#xD;&#xA;&#xD;&#xA;"/>
+    <implementationPreface xmi:id="_BjC7oB4eEemsy6WLp4yALQ" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;"/>
   </CppPropertySets:GeneralCapsuleProperties>
   <CppPropertySets:GeneralParameterProperties xmi:id="_byRVsN6xEeife8wA8rm4kw" base_Parameter="_Z6Wx0N6xEeife8wA8rm4kw" nativeType="const std::string&amp;"/>
   <CppPropertySets:GeneralParameterProperties xmi:id="_fjLbgN6xEeife8wA8rm4kw" base_Parameter="_eOKJUN6xEeife8wA8rm4kw" nativeType="const unsigned int"/>
@@ -511,6 +483,7 @@ resource = theResource;</body>
   <CppPropertySets:GeneralParameterProperties xmi:id="_h_L_YN67Eeife8wA8rm4kw" base_Parameter="_h_KxQt67Eeife8wA8rm4kw" nativeType="const unsigned int"/>
   <CppPropertySets:GeneralParameterProperties xmi:id="_i1euMN67Eeife8wA8rm4kw" base_Parameter="_i1eHIN67Eeife8wA8rm4kw" nativeType="const std::string&amp;"/>
   <CppPropertySets:GeneralCapsuleProperties xmi:id="_pK_XYN6-Eeife8wA8rm4kw" base_Class="_wbBJEN62Eeife8wA8rm4kw">
-    <headerPreface xmi:id="_pK_XYd6-Eeife8wA8rm4kw" body="#include &lt;iostream>&#xD;&#xA;using namespace std;&#xD;&#xA;#include &quot;Socket.h&quot;"/>
+    <headerPreface xmi:id="_pK_XYd6-Eeife8wA8rm4kw" body="#include &lt;iostream>"/>
+    <implementationPreface xmi:id="_eph1sB42Eem-F63zUfAe3Q" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;"/>
   </CppPropertySets:GeneralCapsuleProperties>
 </xmi:XMI>
