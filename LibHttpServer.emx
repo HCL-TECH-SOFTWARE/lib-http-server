@@ -237,8 +237,11 @@ port = thePort;</body>
       <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_bteDUN6zEeife8wA8rm4kw" name="httpGet" specification="_0UyMwN6yEeife8wA8rm4kw">
         <language>C++</language>
         <body>try {&#xD;
+	std::string encodedResource;&#xD;
+	Poco::URI::encode(resource, &quot; &quot;, encodedResource);&#xD;
+	&#xD;
 	HTTPClientSession session(host, port);&#xD;
-	HTTPRequest request(HTTPRequest::HTTP_GET, &quot;/&quot; + resource, HTTPMessage::HTTP_1_1);&#xD;
+	HTTPRequest request(HTTPRequest::HTTP_GET, &quot;/&quot; + encodedResource, HTTPMessage::HTTP_1_1);&#xD;
 	HTTPResponse response;&#xD;
 	session.sendRequest(request);&#xD;
 	std::istream&amp; rs = session.receiveResponse(response);&#xD;
@@ -382,7 +385,7 @@ configureServer(&quot;localhost&quot;, 12345, &quot;getMessage&quot;);</body>
 	}&#xD;
 }&#xD;
 catch (Poco::Exception&amp; exc) {&#xD;
-	std::cerr &lt;&lt; &quot;Failed to FET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; exc.displayText() &lt;&lt; std::endl &lt;&lt; std::flush;&#xD;
+	std::cerr &lt;&lt; &quot;Failed to GET http://&quot; &lt;&lt; host &lt;&lt; &quot;:&quot; &lt;&lt; port &lt;&lt; &quot;/&quot; &lt;&lt; resource &lt;&lt; &quot;: &quot; &lt;&lt; exc.displayText() &lt;&lt; std::endl &lt;&lt; std::flush;&#xD;
 }&#xD;
 &#xD;
 timer.informIn(RTTimespec(0,0)); // Schedule the waiting for another message to arrive&#xD;
@@ -463,7 +466,7 @@ resource = theResource;</body>
   <CppPropertySets:GeneralAttributeProperties xmi:id="_A1DhUN6xEeife8wA8rm4kw" base_Property="_6d7AIN6wEeife8wA8rm4kw" nativeType="std::string"/>
   <CppPropertySets:GeneralCapsuleProperties xmi:id="_KPjF0N6xEeife8wA8rm4kw" base_Class="_K_gYkN6wEeife8wA8rm4kw">
     <headerPreface xmi:id="_KPjs4N6xEeife8wA8rm4kw" body="#include &lt;iostream>&#xD;&#xA;&#xD;&#xA;"/>
-    <implementationPreface xmi:id="_BjC7oB4eEemsy6WLp4yALQ" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;"/>
+    <implementationPreface xmi:id="_BjC7oB4eEemsy6WLp4yALQ" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;#include &quot;Poco/URI.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;"/>
   </CppPropertySets:GeneralCapsuleProperties>
   <CppPropertySets:GeneralParameterProperties xmi:id="_byRVsN6xEeife8wA8rm4kw" base_Parameter="_Z6Wx0N6xEeife8wA8rm4kw" nativeType="const std::string&amp;"/>
   <CppPropertySets:GeneralParameterProperties xmi:id="_fjLbgN6xEeife8wA8rm4kw" base_Parameter="_eOKJUN6xEeife8wA8rm4kw" nativeType="const unsigned int"/>
