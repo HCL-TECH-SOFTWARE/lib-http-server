@@ -256,6 +256,35 @@ catch (Poco::Exception&amp; exc) {&#xD;
 	return &quot;ERROR&quot;;&#xD;
 }</body>
       </ownedBehavior>
+      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_SYPeADBwEemdXd9vu5XPZQ" name="httpPostFile" specification="_SYNBwDBwEemdXd9vu5XPZQ">
+        <language>C++</language>
+        <body>try {&#xD;
+	std::string encodedResource;&#xD;
+	Poco::URI::encode(resource, &quot; &quot;, encodedResource);&#xD;
+	&#xD;
+	HTTPRequest request(HTTPRequest::HTTP_POST, &quot;/&quot; + encodedResource, HTTPMessage::HTTP_1_1);&#xD;
+	HTMLForm form;&#xD;
+	form.setEncoding(HTMLForm::ENCODING_MULTIPART);&#xD;
+	form.addPart(&quot;file&quot;, new FilePartSource(file));&#xD;
+	form.prepareSubmit(request);&#xD;
+	&#xD;
+	HTTPClientSession session(host, port);&#xD;
+	session.setTimeout(Poco::Timespan(20, 0));&#xD;
+	form.write(session.sendRequest(request));&#xD;
+	&#xD;
+	HTTPResponse response;&#xD;
+	std::istream&amp; rs = session.receiveResponse(response);&#xD;
+	if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_OK)&#xD;
+		return &quot;ERROR&quot;;&#xD;
+		&#xD;
+	std::string s(std::istreambuf_iterator&lt;char>(rs), {});	&#xD;
+	return s;&#xD;
+}&#xD;
+catch (Poco::Exception&amp; exc) {&#xD;
+	std::cerr &lt;&lt; exc.displayText() &lt;&lt; std::endl;&#xD;
+	return &quot;ERROR&quot;;&#xD;
+}</body>
+      </ownedBehavior>
       <ownedOperation xmi:id="_pzwv8N6wEeife8wA8rm4kw" name="configureServer" method="_zNHE8N6wEeife8wA8rm4kw">
         <ownedParameter xmi:id="_Z6Wx0N6xEeife8wA8rm4kw" name="theHost"/>
         <ownedParameter xmi:id="_eOKJUN6xEeife8wA8rm4kw" name="thePort"/>
@@ -265,10 +294,18 @@ catch (Poco::Exception&amp; exc) {&#xD;
       </ownedOperation>
       <ownedOperation xmi:id="_0UyMwN6yEeife8wA8rm4kw" name="httpGet" method="_bteDUN6zEeife8wA8rm4kw">
         <ownedComment xmi:id="__EOK8N6yEeife8wA8rm4kw" annotatedElement="_0UyMwN6yEeife8wA8rm4kw">
-          <body>&lt;p>Perform a http GET operation on the specified resource. The response string is returned (or &quot;ERROR&quot; in case an error occurs).&lt;/p></body>
+          <body>&lt;p>Perform an http GET operation on the specified resource. The response string is returned (or &quot;ERROR&quot; in case an error occurs).&lt;/p></body>
         </ownedComment>
         <ownedParameter xmi:id="__aNCAN6yEeife8wA8rm4kw" name="resource"/>
         <ownedParameter xmi:id="_VLaEgN6zEeife8wA8rm4kw" name="return" direction="return"/>
+      </ownedOperation>
+      <ownedOperation xmi:id="_SYNBwDBwEemdXd9vu5XPZQ" name="httpPostFile" method="_SYPeADBwEemdXd9vu5XPZQ">
+        <ownedComment xmi:id="_SYNBwTBwEemdXd9vu5XPZQ" annotatedElement="_SYNBwDBwEemdXd9vu5XPZQ">
+          <body>&lt;p>Perform an http POST operation on the specified resource with form data containing a file to upload. The response string is returned (or &quot;ERROR&quot; in case an error occurs).&lt;/p></body>
+        </ownedComment>
+        <ownedParameter xmi:id="_SYNBwjBwEemdXd9vu5XPZQ" name="resource"/>
+        <ownedParameter xmi:id="_eNfNsDBwEemdXd9vu5XPZQ" name="file"/>
+        <ownedParameter xmi:id="_SYNBwzBwEemdXd9vu5XPZQ" name="return" direction="return"/>
       </ownedOperation>
     </packagedElement>
     <packagedElement xmi:type="uml:Class" xmi:id="_wbBJEN62Eeife8wA8rm4kw" name="HttpServer_In">
@@ -376,8 +413,11 @@ configureServer(&quot;localhost&quot;, 12345, &quot;getMessage&quot;);</body>
         <body>try {&#xD;
 	HTTPClientSession session(host, port);&#xD;
 	HTTPRequest request(HTTPRequest::HTTP_GET, &quot;/&quot; + resource, HTTPMessage::HTTP_1_1);&#xD;
-	HTTPResponse response;&#xD;
+	HTTPResponse response;	&#xD;
 	session.sendRequest(request);&#xD;
+	StreamSocket &amp;str = session.socket();	&#xD;
+	Poco::Timespan ts(600L, 0L); // 10 min timeout&#xD;
+	str.setReceiveTimeout(ts);&#xD;
 	std::istream&amp; rs = session.receiveResponse(response);&#xD;
 	if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {&#xD;
 		std::string s(std::istreambuf_iterator&lt;char>(rs), {});&#xD;
@@ -465,8 +505,8 @@ resource = theResource;</body>
   <CppPropertySets:GeneralOperationProperties xmi:id="_202nsN6wEeife8wA8rm4kw" base_Operation="_pzwv8N6wEeife8wA8rm4kw"/>
   <CppPropertySets:GeneralAttributeProperties xmi:id="_A1DhUN6xEeife8wA8rm4kw" base_Property="_6d7AIN6wEeife8wA8rm4kw" nativeType="std::string"/>
   <CppPropertySets:GeneralCapsuleProperties xmi:id="_KPjF0N6xEeife8wA8rm4kw" base_Class="_K_gYkN6wEeife8wA8rm4kw">
-    <headerPreface xmi:id="_KPjs4N6xEeife8wA8rm4kw" body="#include &lt;iostream>&#xD;&#xA;&#xD;&#xA;"/>
-    <implementationPreface xmi:id="_BjC7oB4eEemsy6WLp4yALQ" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;#include &quot;Poco/URI.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;"/>
+    <headerPreface xmi:id="_fdIkECVhEem0UtZqFR6jHw" body="#include &lt;string>"/>
+    <implementationPreface xmi:id="_BjC7oB4eEemsy6WLp4yALQ" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTMLForm.h&quot;&#xD;&#xA;#include &quot;Poco/Net/FilePartSource.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;#include &quot;Poco/URI.h&quot;&#xD;&#xA;#include &lt;iostream>&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTMLForm;&#xD;&#xA;using Poco::Net::FilePartSource;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;"/>
   </CppPropertySets:GeneralCapsuleProperties>
   <CppPropertySets:GeneralParameterProperties xmi:id="_byRVsN6xEeife8wA8rm4kw" base_Parameter="_Z6Wx0N6xEeife8wA8rm4kw" nativeType="const std::string&amp;"/>
   <CppPropertySets:GeneralParameterProperties xmi:id="_fjLbgN6xEeife8wA8rm4kw" base_Parameter="_eOKJUN6xEeife8wA8rm4kw" nativeType="const unsigned int"/>
@@ -487,6 +527,10 @@ resource = theResource;</body>
   <CppPropertySets:GeneralParameterProperties xmi:id="_i1euMN67Eeife8wA8rm4kw" base_Parameter="_i1eHIN67Eeife8wA8rm4kw" nativeType="const std::string&amp;"/>
   <CppPropertySets:GeneralCapsuleProperties xmi:id="_pK_XYN6-Eeife8wA8rm4kw" base_Class="_wbBJEN62Eeife8wA8rm4kw">
     <headerPreface xmi:id="_pK_XYd6-Eeife8wA8rm4kw" body="#include &lt;iostream>"/>
-    <implementationPreface xmi:id="_eph1sB42Eem-F63zUfAe3Q" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;"/>
+    <implementationPreface xmi:id="_eph1sB42Eem-F63zUfAe3Q" body="#include &quot;Poco/Net/HTTPClientSession.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPRequest.h&quot;&#xD;&#xA;#include &quot;Poco/Net/HTTPResponse.h&quot;&#xD;&#xA;#include &quot;Poco/Net/StreamSocket.h&quot;&#xD;&#xA;#include &quot;Poco/Exception.h&quot;&#xD;&#xA;#include &quot;Poco/Timespan.h&quot;&#xD;&#xA;using Poco::Net::HTTPClientSession;&#xD;&#xA;using Poco::Net::HTTPRequest;&#xD;&#xA;using Poco::Net::HTTPResponse;&#xD;&#xA;using Poco::Net::HTTPMessage;&#xD;&#xA;using Poco::Net::StreamSocket;"/>
   </CppPropertySets:GeneralCapsuleProperties>
+  <Default:Documentation xmi:id="_SYQsIDBwEemdXd9vu5XPZQ" base_Comment="_SYNBwTBwEemdXd9vu5XPZQ"/>
+  <CppPropertySets:GeneralParameterProperties xmi:id="_SYQsITBwEemdXd9vu5XPZQ" base_Parameter="_SYNBwjBwEemdXd9vu5XPZQ" nativeType="const std::string&amp;"/>
+  <CppPropertySets:GeneralParameterProperties xmi:id="_SYQsIjBwEemdXd9vu5XPZQ" base_Parameter="_SYNBwzBwEemdXd9vu5XPZQ" nativeType="std::string"/>
+  <CppPropertySets:GeneralParameterProperties xmi:id="_g3ZPMDBwEemdXd9vu5XPZQ" base_Parameter="_eNfNsDBwEemdXd9vu5XPZQ" nativeType="const std::string&amp;"/>
 </xmi:XMI>
