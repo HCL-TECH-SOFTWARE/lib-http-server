@@ -1,5 +1,5 @@
 let tc = TCF.define(TCF.CPP_TRANSFORM);
-let topTC = TCF.getRootTransformationConfiguration();
+let topTC = TCF.getTopTC().eval;
 let pocoLoc = topTC.pocoLoc || 'D:\\github\\poco';
 
 tc.sources = [
