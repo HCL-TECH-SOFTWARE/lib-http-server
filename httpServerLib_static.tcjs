@@ -1,0 +1,36 @@
+// Use this TC as your prerequisite if you want to link with POCO statically (using the version of POCO that is shipped with RSARTE/RTist
+// Configure your TC like this (example for Windows with Visual Studio compiler):
+// - Define the preprocessor symbol POCO_STATIC
+// - Add the below user libraries
+//    $(RSA_RT_HOME)/tcpserver/poco/WinT.x64-VisualC++-15.0/PocoFoundationmd.lib
+//    $(RSA_RT_HOME)/tcpserver/poco/WinT.x64-VisualC++-15.0/PocoNetmd.lib
+//    Ws2_32.lib
+//    Iphlpapi.lib
+//    Advapi32.lib
+let tc = TCF.define(TCF.CPP_TRANSFORM);
+let topTC = TCF.getRootTransformationConfiguration();
+
+tc.sources = [
+    'platform:/resource/LibHttpServer/LibHttpServer.emx#_rx2SkNXDEei3BJT-OqdJZA'
+];
+tc.createTargetProject = true;
+tc.targetProject = '/LibHttpServer_target';
+tc.type = CppTransformType.Library;
+tc.compilationMakeType = topTC.compilationMakeType || MakeType.MS_nmake;
+tc.inclusionPaths = [
+    '$(RSA_RT_HOME)/tcpserver/poco/Net/include',
+    '$(RSA_RT_HOME)/tcpserver/poco/Foundation/include'
+];
+
+tc.targetConfiguration = topTC.targetConfiguration || 'WinT.x64-VisualC++-15.0';
+tc.targetServicesLibrary = topTC.targetServicesLibrary || 'D:\\git\\rsarte-target-rts\\rsa_rt\\C++\\TargetRTS';
+
+tc.unitName = 'UnitName_HttpLib';
+tc.copyrightText = `
+/*******************************************************************************
+ * (c) Copyright HCL Technologies Ltd. 2019.  MIT Licensed!
+ *******************************************************************************/
+`;
+tc.libraryName = 'httpServerLib$(LIB_EXT)';
+tc.compileArguments = topTC.compileArguments || '$(DEBUG_TAG) /MD';
+
