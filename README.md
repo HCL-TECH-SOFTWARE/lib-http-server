@@ -1,5 +1,5 @@
 # lib-http-server
-A library for [HCL RTist](https://www.devops-community.com/realtime-software-tooling-rtist.html) which allows an application to communicate with an HTTP server (both sending and receiving messages).
+A library for [DevOps Model RealTime](https://www.hcl-software.com/devops-model-realtime) which allows an application to communicate with an HTTP server (both sending and receiving messages).
 
 ## Usage
 This library contains two capsules; one for communicating from the real-time application to an HTTP server (HttpServer_Out) and one for communicating from an HTTP server to the real-time application (HttpServer_In).
@@ -15,7 +15,7 @@ Fetching messages from the HTTP server uses a long-running HTTP request that onl
 ## Build the Library
 The library uses the [POCO C++ libraries](https://pocoproject.org) and you must therefore first clone and build the [POCO GitHub repository](https://github.com/pocoproject/poco) for your particular platform.
 
-Add the TC `httpServerLib.tcjs` as a prerequisite of the executable TC for your RTist application. Also specify the location of the POCO library root folder by setting the 'pocoLoc' property of your TC (using the Code tab of the TC editor). For example:
+Add the TC `httpServerLib.tcjs` as a prerequisite of the executable TC for your Model RealTime application. Also specify the location of the POCO library root folder by setting the 'pocoLoc' property of your TC (using the Code tab of the TC editor). For example:
 
 `
 tc.pocoLoc = 'D:\\github\\poco';
