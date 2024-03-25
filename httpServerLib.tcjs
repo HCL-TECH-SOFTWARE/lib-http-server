@@ -1,6 +1,6 @@
 let tc = TCF.define(TCF.CPP_TRANSFORM);
 let topTC = TCF.getTopTC().eval;
-let pocoLoc = topTC.pocoLoc || 'D:\\github\\poco';
+let pocoLoc = topTC.pocoLoc;
 
 tc.sources = [
     'platform:/resource/LibHttpServer/LibHttpServer.emx#_rx2SkNXDEei3BJT-OqdJZA'
@@ -15,13 +15,13 @@ tc.inclusionPaths = [
     pocoLoc + '\\Foundation\\include'
 ];
 
-tc.targetConfiguration = topTC.targetConfiguration || 'WinT.x64-VisualC++-15.0';
-tc.targetServicesLibrary = topTC.targetServicesLibrary || 'D:\\git\\rsarte-target-rts\\rsa_rt\\C++\\TargetRTS';
+tc.targetConfiguration = topTC.targetConfiguration || 'WinT.x64-VisualC++-17.0';
+tc.targetServicesLibrary = topTC.targetServicesLibrary;
 
 tc.unitName = 'UnitName_HttpLib';
 tc.copyrightText = `
 /*******************************************************************************
- * (c) Copyright HCL Technologies Ltd. 2019.  MIT Licensed!
+ * (c) Copyright HCL Technologies Ltd. 2024.  MIT Licensed!
  *******************************************************************************/
 `;
 tc.libraryName = 'httpServerLib$(LIB_EXT)';
